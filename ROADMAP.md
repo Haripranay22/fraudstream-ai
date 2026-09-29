@@ -10,7 +10,7 @@ Course: "Apache Kafka for Data Engineering" (DataVidhya). Watch at 1.5x; log 3 l
 ## Stage 1 — Generator + Kafka
 - [ ] 1.01 WATCH — Sec 1 "Real-time Analytics Stack"; Sec 2 "Apache Kafka Masterclass", "Why Do We Need Kafka?"
 - [ ] 1.02 WATCH — Sec 3 Docker (first 2 lectures, skip if familiar); Sec 4 "Kafka Installation Guide Docker"
-- [ ] 1.03 BUILD-CLAUDE — `docker-compose.yml` (Kafka KRaft + Kafka UI), `Makefile` (up/down/logs), `requirements.txt`. Done: `make up` works, Kafka UI shows the cluster at localhost:8080
+- [x] 1.03 BUILD-CLAUDE — `docker-compose.yml` (Kafka KRaft + Kafka UI), `Makefile` (up/down/logs), `requirements.txt`. Done: `make up` works, Kafka UI shows the cluster at localhost:8080
 - [ ] 1.04 WATCH — Sec 5 "Kafka CLI Tools Basics", "Explore How Kafka Works (Internals)"
 - [ ] 1.05 BUILD-ME — `scripts/create_topics.sh`: create the 4 topics (3 partitions each) via CLI; produce/consume a test message by hand. Done: topics visible in UI
 - [ ] 1.06 QUIZ — topics, partitions, offsets, brokers (3 questions)
