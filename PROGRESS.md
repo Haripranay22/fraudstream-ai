@@ -21,6 +21,7 @@ Stage 0 (setup) ✅
 | 13 | Kafka UI = `kafbat/kafka-ui` | Maintained fork; `provectuslabs/kafka-ui` is abandoned |
 | 14 | Python client = `confluent-kafka` (not `kafka-python`) | Built on librdkafka: full idempotent producer, faster, used in production. Course may show kafka-python; the API ideas are the same |
 | 15 | GNU make on Windows via winget (`ezwinports.make`) | Same `make up/down/logs` works later on Linux/AWS |
+| 16 | Coaching mode: I build and run all pipelines/DAGs; Claude hints, reviews, writes tests | The goal is to learn Kafka/Spark/Airflow/dbt by hitting and fixing real problems, not to collect generated code |
 
 ## Setup gotchas
 - Docker Hub pulls failed with `EOF` when both images downloaded in parallel. Fix: `docker pull apache/kafka:4.0.0` on its own, then `make up`.
