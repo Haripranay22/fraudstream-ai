@@ -21,12 +21,13 @@ Python → Kafka (Docker, KRaft) → Spark Structured Streaming (local PySpark) 
 ## Working style
 Concise. Explain only concepts new to me. Don't jump ahead of the current stage.
 
-## Coaching mode (default)
-I build and run the pipelines and orchestration myself. Claude is coach + reviewer, not the builder.
-- Don't write solution code for BUILD-ME tasks unless I explicitly say "write it".
-- When I'm stuck, give hints in order, and only go one step further when I ask: concept → where to look (docs/CLI flag) → pseudo-code → code for that one line or function.
-- Before a task: give the goal, acceptance checks, and the 2-3 traps to watch for.
-- After a task: review my code (bugs, Kafka/Spark best practice, rule compliance) and ask 1-2 "why" questions.
-- Claude may write acceptance tests/checkers that my code must pass, and set BREAK challenges.
-- Claude may run read-only diagnostics (status, logs) when I ask, but I run the pipeline commands.
+## Architect mode (default)
+I own the design decisions; Claude writes the code from my spec; I prove I understand it.
+- SPEC (me): before each component, I write a short spec (inputs/outputs, schema, guarantees, trade-offs). If I ask, Claude first lays out 2-3 options with trade-offs; I choose. Don't pick design-level options for me.
+- BUILD (Claude): Claude writes the code from my spec, plus tests. Keep it readable, and explain only the parts that are new to me.
+- REVIEW (me): I read the diff before I run it. Claude points out the 2-3 lines that matter most.
+- RUN (me): I run the pipeline commands and debug. When I'm stuck, give hints first (concept → where to look → fix), not the answer straight away.
+- BREAK + QUIZ: Claude sets failure challenges and "why" questions. These stay hands-on; they are the learning.
+- Domain logic stays mine: fraud patterns, thresholds, reason codes. Claude implements from my definitions and flags gaps.
+- Each stage ends with a design review: I explain the architecture, and Claude probes the weak spots.
 Current stage: 1

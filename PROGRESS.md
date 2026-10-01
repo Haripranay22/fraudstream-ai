@@ -21,11 +21,17 @@ Stage 0 (setup) ✅
 | 13 | Kafka UI = `kafbat/kafka-ui` | Maintained fork; `provectuslabs/kafka-ui` is abandoned |
 | 14 | Python client = `confluent-kafka` (not `kafka-python`) | Built on librdkafka: full idempotent producer, faster, used in production. Course may show kafka-python; the API ideas are the same |
 | 15 | GNU make on Windows via winget (`ezwinports.make`) | Same `make up/down/logs` works later on Linux/AWS |
-| 16 | Coaching mode: I build and run all pipelines/DAGs; Claude hints, reviews, writes tests | The goal is to learn Kafka/Spark/Airflow/dbt by hitting and fixing real problems, not to collect generated code |
+| 16 | ~~Coaching mode: I build and run all pipelines/DAGs; Claude hints, reviews, writes tests~~ (replaced by #17) | The goal is to learn Kafka/Spark/Airflow/dbt by hitting and fixing real problems, not to collect generated code |
+| 17 | Architect mode: I spec + make design decisions, Claude writes code, I review/run/break it | Modern workflow is spec-driven; interview value is judgment + debugging, not typing boilerplate. BREAK/QUIZ stay hands-on |
+| 18 | 3 partitions per topic, partition key `card_id` (Claude-recommended, 1.05) | Fraud rules need order per card, not global order; key gives that. 3 = 3 parallel Spark tasks + a real consumer-group/rebalance demo (1.14–1.16). Throughput alone would justify 1 |
+| 19 | `transactions.raw` + `fraud.labels` retention 30 days, equal (Claude-recommended, 1.05) | Source of truth until Snowflake (Stage 3); replay raw into Spark in Stage 2. Equal retention so a label never outlives its transaction (training/eval join needs both) |
+| 20 | `transactions.scored` + `alerts` retention 7 days (Claude-recommended, 1.05) | Derived data: rebuild by re-running Spark over raw |
+| 21 | `cleanup.policy=delete` everywhere + `retention.bytes` 1 GB per partition (Claude-recommended, 1.05) | `compact` keeps only the latest message per key: on raw (key=card_id) it would erase card history. Byte cap protects laptop disk; whichever limit hits first wins |
 
 ## Setup gotchas
 - Docker Hub pulls failed with `EOF` when both images downloaded in parallel. Fix: `docker pull apache/kafka:4.0.0` on its own, then `make up`.
 - Git Bash rewrites `/opt/...` paths in `docker exec`. Use PowerShell, or prefix `MSYS_NO_PATHCONV=1`.
+- `make topics` failed with `Bash/Service/0x80072747`: on Windows, plain `bash` is the WSL launcher (System32\bash.exe), not Git Bash. Fix: Makefile calls Git Bash by full path on Windows.
 - Kafka logs a few `ERROR ... DUPLICATE_BROKER_REGISTRATION / timed out` lines at startup — harmless race in combined mode; it registers seconds later.
 
 ## Kafka topics
@@ -41,4 +47,4 @@ Precision, recall, F1, dollar-weighted recall, FPR, p50/p95 alert latency — pe
 <!-- 1.15 etc.: what I broke, what happened, what I learned -->
 
 ## Next
-See ROADMAP.md → 1.01/1.02 WATCH (1.03 done), then 1.04
+See ROADMAP.md → 1.03b QUIZ, then 1.05 SPEC
