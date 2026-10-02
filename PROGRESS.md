@@ -27,6 +27,11 @@ Stage 0 (setup) ✅
 | 19 | `transactions.raw` + `fraud.labels` retention 30 days, equal (Claude-recommended, 1.05) | Source of truth until Snowflake (Stage 3); replay raw into Spark in Stage 2. Equal retention so a label never outlives its transaction (training/eval join needs both) |
 | 20 | `transactions.scored` + `alerts` retention 7 days (Claude-recommended, 1.05) | Derived data: rebuild by re-running Spark over raw |
 | 21 | `cleanup.policy=delete` everywhere + `retention.bytes` 1 GB per partition (Claude-recommended, 1.05) | `compact` keeps only the latest message per key: on raw (key=card_id) it would erase card history. Byte cap protects laptop disk; whichever limit hits first wins |
+| 22 | Every txn carries `event_time`; generator can send some late (1.08) | Arrival time lies: late/batched records look like bursts. Velocity rules must count by event time (Spark watermarks, Stage 2) |
+| 23 | Spend baseline per customer per category, mean ± std (option B, 1.08) | One average flags every legit big purchase (a $2k TV for a $40 grocery shopper). Normal depends on what is bought |
+| 24 | Spend profiles are generator-only ground truth, kept off the Customer record (1.08) | The detector must learn each customer's normal from the stream; reading the profile = leakage, inflated metrics |
+| 25 | Cold start: fall back to the category norm until 5 txns in that category (option a, 1.08) | Standard industry answer; skipping misses fraud, flagging all firsts floods false positives. Threshold in config.yaml |
+| 26 | 1–3 cards per customer; txns get `status` approved/declined; card testing in both shapes: per-card test-then-cash-out and per-merchant many-cards (1.08) | Realistic; declines are the key card-testing signal; shape 2 forces a per-merchant aggregation in Stage 2 |
 
 ## Setup gotchas
 - Docker Hub pulls failed with `EOF` when both images downloaded in parallel. Fix: `docker pull apache/kafka:4.0.0` on its own, then `make up`.

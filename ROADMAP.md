@@ -17,8 +17,10 @@ Course: "Apache Kafka for Data Engineering" (DataVidhya). WATCH is optional: wat
 - [x] 1.05 SPEC → BUILD — I decide partitions, retention, cleanup policy per topic; Claude writes `scripts/create_topics.sh`; I run it + produce/consume a test message by hand. Done: topics visible in UI, choices logged
 - [ ] 1.06 QUIZ — topics, partitions, offsets, brokers (3 questions)
 - [ ] 1.07 WATCH — Sec 5 "Python - Producer and Consumer"
-- [ ] 1.08 SPEC → BUILD — I spec the entity model + config knobs; Claude writes `generator/config.yaml` + `generator/entities.py` (customers w/ home geo, cards, merchants w/ MCC + geo). Done: script prints sample entities
+- [x] 1.08 SPEC → BUILD — I spec the entity model + config knobs; Claude writes `generator/config.yaml` + `generator/entities.py` (customers w/ home geo, cards, merchants w/ MCC + geo). Done: script prints sample entities
 - [ ] 1.09 SPEC → BUILD — `generator/patterns.py`: I define the 4 fraud patterns (thresholds, timing, mix); Claude implements the injectors + `tests/test_patterns.py` from my spec. Done: tests pass, each pattern is generated and labeled
+  - Carry-over from 1.08: `status` + declines (normal low rate, high during card testing); card testing both shapes; some events sent late (event_time ≠ send time)
+  - Realism adds: legit look-alikes (real travel, real big purchase, transit tap bursts); fraud rate ~0.1–0.5%; label delay on `fraud.labels` (chargebacks arrive days later)
 - [ ] 1.10 WATCH — Sec 5 "Kafka Producers In-Depth" Part 1 + Part 2
 - [ ] 1.11 SPEC → BUILD — I decide key, acks, idempotence, error handling; Claude writes `generator/producer.py`: key=card_id, acks=all, idempotence, callbacks; transactions → `transactions.raw`, labels → `fraud.labels`; configurable TPS. Done: messages flowing in UI, no labels in raw
 - [ ] 1.12 WATCH — Sec 6 Broker, Topics & Partitions (all 3). Log the partition-key decision in PROGRESS.md

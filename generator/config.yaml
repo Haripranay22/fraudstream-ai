@@ -1,0 +1,49 @@
+# Generator config: the fake world (1.08). Fraud-pattern settings come in 1.09.
+# Same seed + same config = same world, so bugs are reproducible.
+
+seed: 42
+
+counts:
+  customers: 1000
+  merchants: 200
+
+cards_per_customer: { min: 1, max: 3 }
+card_types: { credit: 0.6, debit: 0.4 }        # weights
+
+# Spend profiles (generator-only, hidden from the detector)
+# Each customer gets a spend level, and each category a small personal tweak on top of it.
+spend_profile:
+  customer_level_sigma: 0.35    # lognormal spread of a customer's overall spend level
+  category_tweak_sigma: 0.20    # lognormal spread per (customer, category)
+  cv: 0.30                      # std = mean * cv
+
+# The detector falls back to the category norm until a customer has this many txns in a category
+cold_start_min_txns: 5
+
+# Home cities for customers; in-store merchants are placed in these too
+cities:
+  - { name: New York,      lat: 40.7128, lon: -74.0060,  weight: 0.20 }
+  - { name: Los Angeles,   lat: 34.0522, lon: -118.2437, weight: 0.15 }
+  - { name: Chicago,       lat: 41.8781, lon: -87.6298,  weight: 0.12 }
+  - { name: Houston,       lat: 29.7604, lon: -95.3698,  weight: 0.10 }
+  - { name: Phoenix,       lat: 33.4484, lon: -112.0740, weight: 0.08 }
+  - { name: Miami,         lat: 25.7617, lon: -80.1918,  weight: 0.08 }
+  - { name: Seattle,       lat: 47.6062, lon: -122.3321, weight: 0.08 }
+  - { name: Denver,        lat: 39.7392, lon: -104.9903, weight: 0.07 }
+  - { name: Atlanta,       lat: 33.7490, lon: -84.3880,  weight: 0.07 }
+  - { name: Boston,        lat: 42.3601, lon: -71.0589,  weight: 0.05 }
+city_jitter_deg: 0.05           # spread around the city centre (~5 km)
+
+# Merchant categories (MCC). amount_min/max = the category's typical range,
+# also used as the detector's cold-start norm.
+online_share: 0.35              # chance a merchant is online, when its category allows both
+categories:
+  - { mcc: "5411", name: grocery,       amount_min: 20,  amount_max: 150,  channels: [in_store, online], weight: 0.22 }
+  - { mcc: "5541", name: fuel,          amount_min: 25,  amount_max: 90,   channels: [in_store],         weight: 0.12 }
+  - { mcc: "5812", name: restaurants,   amount_min: 15,  amount_max: 120,  channels: [in_store, online], weight: 0.18 }
+  - { mcc: "4111", name: transit,       amount_min: 2,   amount_max: 15,   channels: [in_store],         weight: 0.08 }
+  - { mcc: "5311", name: department,    amount_min: 30,  amount_max: 400,  channels: [in_store, online], weight: 0.10 }
+  - { mcc: "5732", name: electronics,   amount_min: 200, amount_max: 3000, channels: [in_store, online], weight: 0.06 }
+  - { mcc: "4511", name: airlines,      amount_min: 150, amount_max: 1500, channels: [online],           weight: 0.04 }
+  - { mcc: "5815", name: digital_goods, amount_min: 1,   amount_max: 60,   channels: [online],           weight: 0.12 }
+  - { mcc: "8398", name: donations,     amount_min: 5,   amount_max: 100,  channels: [online],           weight: 0.08 }
