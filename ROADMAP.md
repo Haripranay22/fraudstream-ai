@@ -18,7 +18,7 @@ Course: "Apache Kafka for Data Engineering" (DataVidhya). WATCH is optional: wat
 - [ ] 1.06 QUIZ — topics, partitions, offsets, brokers (3 questions)
 - [ ] 1.07 WATCH — Sec 5 "Python - Producer and Consumer"
 - [x] 1.08 SPEC → BUILD — I spec the entity model + config knobs; Claude writes `generator/config.yaml` + `generator/entities.py` (customers w/ home geo, cards, merchants w/ MCC + geo). Done: script prints sample entities
-- [ ] 1.09 SPEC → BUILD — `generator/patterns.py`: I define the 4 fraud patterns (thresholds, timing, mix); Claude implements the injectors + `tests/test_patterns.py` from my spec. Done: tests pass, each pattern is generated and labeled
+- [x] 1.09 SPEC → BUILD — `generator/patterns.py`: I define the 4 fraud patterns (thresholds, timing, mix); Claude implements the injectors + `tests/test_patterns.py` from my spec. Done: tests pass, each pattern is generated and labeled
   - Carry-over from 1.08: `status` + declines (normal low rate, high during card testing); card testing both shapes; some events sent late (event_time ≠ send time)
   - Realism adds: legit look-alikes (real travel, real big purchase, transit tap bursts); fraud rate ~0.1–0.5%; label delay on `fraud.labels` (chargebacks arrive days later)
 - [ ] 1.10 WATCH — Sec 5 "Kafka Producers In-Depth" Part 1 + Part 2
