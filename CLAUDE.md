@@ -30,4 +30,10 @@ I own the design decisions; Claude writes the code from my spec; I prove I under
 - BREAK + QUIZ: Claude sets failure challenges and "why" questions. These stay hands-on; they are the learning.
 - Domain logic stays mine: fraud patterns, thresholds, reason codes. Claude implements from my definitions and flags gaps.
 - Each stage ends with a design review: I explain the architecture, and Claude probes the weak spots.
+## Review agents (.claude/agents, skill `fraud-engineering-review`)
+- End of each SPEC → BUILD task, before commit: "pre-commit review" (code-quality, test-engineer, ml-leakage, project-architect; + fraud-realism for generator/fraud changes, + streaming for Kafka/Spark/event-time changes).
+- Stage-end design review (1.17, 2.x, ...): "full review" (all 8 agents).
+- Don't run them for WATCH/QUIZ/BREAK tasks or small fixes. Each agent re-reads the repo, so they're slow and costly.
+- Agents report findings; I still decide. Domain/design fixes they raise go through the normal propose → confirm loop.
+
 Current stage: 1

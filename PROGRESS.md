@@ -49,6 +49,7 @@ Stage 0 (setup) ✅
 | 41 | Raw txn schema: txn_id, card_id, customer_id, merchant_id, mcc, amount, currency, channel, lat, lon (merchant location; null online), status, event_time. Labels: txn_id, fraud_pattern, attack_id, attack_seq, label_time (1.09) | Nothing in raw says fraud; generator internals (profiles, kind tags, send time, attack ids) never leave the generator |
 | 42 | Attack start time is blended: 75% follow the legit daily curve (victim's local time), 25% a flatter curve weighted to night. Result: 15% of attacks start 00–06 local vs 4% of legit txns (1.09) | Real fraud skews to odd hours, but fully uniform timing made hour-of-day a synthetic artifact the model could exploit. Blend keeps it a weak signal (night alone F1 0.08) |
 | 43 | Keep `RAW_FIELDS` / `LABEL_FIELDS` in the generator for 1.09; move the canonical schema to `streaming/schemas.py` in 1.11 (#3) | No dependency on a module that doesn't exist yet; the producer is the first consumer of the schema |
+| 44 | Project review agents in `.claude/` (8 reviewers + `fraud-engineering-review` skill), committed. Pre-commit review at the end of each BUILD task; full review only at stage-end design reviews | Independent checks for leakage, realism, streaming semantics and tests catch what passing tests miss. Full review = 8 agents re-reading the repo, so keep it for milestones |
 
 ## Setup gotchas
 - Docker Hub pulls failed with `EOF` when both images downloaded in parallel. Fix: `docker pull apache/kafka:4.0.0` on its own, then `make up`.
