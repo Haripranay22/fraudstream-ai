@@ -22,7 +22,7 @@ Course: "Apache Kafka for Data Engineering" (DataVidhya). WATCH is optional: wat
   - Carry-over from 1.08: `status` + declines (normal low rate, high during card testing); card testing both shapes; some events sent late (event_time ≠ send time)
   - Realism adds: legit look-alikes (real travel, real big purchase, transit tap bursts); fraud rate ~0.1–0.5%; label delay on `fraud.labels` (chargebacks arrive days later)
 - [ ] 1.10 WATCH — Sec 5 "Kafka Producers In-Depth" Part 1 + Part 2
-- [ ] 1.11 SPEC → BUILD — I decide key, acks, idempotence, error handling; Claude writes `generator/producer.py`: key=card_id, acks=all, idempotence, callbacks; transactions → `transactions.raw`, labels → `fraud.labels`; configurable TPS. Done: messages flowing in UI, no labels in raw
+- [x] 1.11 SPEC → BUILD — I decide key, acks, idempotence, error handling; Claude writes `generator/producer.py`: key=card_id, acks=all, idempotence, callbacks; transactions → `transactions.raw`, labels → `fraud.labels`; configurable TPS. Done: messages flowing in UI, no labels in raw
 - [ ] 1.12 WATCH — Sec 6 Broker, Topics & Partitions (all 3). Log the partition-key decision in PROGRESS.md
 - [ ] 1.13 WATCH — Sec 5 Consumers Part 1–3
 - [ ] 1.14 SPEC → BUILD — I decide commit strategy + checks; Claude writes `tests/consume_check.py`: consumer group, manual commit, reports counts + fraud rate per pattern by joining raw + labels on txn_id. Done: rates match config within tolerance
@@ -34,7 +34,7 @@ Course: "Apache Kafka for Data Engineering" (DataVidhya). WATCH is optional: wat
 - [ ] 1.5 (expand when started) — WATCH Sec 8 → add Schema Registry to compose → migrate producer/consumer JSON → Avro
 
 ## Stage 2 — Spark scoring (expand when started; SPEC → BUILD)
-WATCH Sec 10 "Window Function"; Stock project: Spark batch + real-time lectures → `streaming/rules.py` (my rule spec + reason codes) → `score_stream.py` → `transactions.scored` + `alerts` → `ml/` features, XGBoost, rules-vs-model eval → latency measurement
+WATCH Sec 10 "Window Function"; Stock project: Spark batch + real-time lectures → dedupe on `txn_id` within the watermark (#47) → `streaming/rules.py` (my rule spec + reason codes) → `score_stream.py` → `transactions.scored` + `alerts` → `ml/` features, XGBoost, rules-vs-model eval → latency measurement
 
 ## Stage 3 — Snowflake + dbt (expand when started; SPEC → BUILD; start Snowflake trial here)
 WATCH Stock project: Snowflake incremental; Sec 9 Kafka Connect intro → decide on sink method → raw tables → dbt staging/intermediate/marts → metrics marts

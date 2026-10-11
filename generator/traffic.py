@@ -17,10 +17,6 @@ from datetime import datetime, time, timedelta, timezone
 from generator.clock import SimClock, to_iso, truncate_ms
 from generator.entities import Card, Customer, Merchant, World
 
-# Exactly the fields of a transactions.raw record. Nothing here may say "fraud".
-RAW_FIELDS = ("txn_id", "card_id", "customer_id", "merchant_id", "mcc", "amount", "currency",
-              "channel", "lat", "lon", "status", "event_time")
-
 
 @dataclass(frozen=True)
 class BehaviorProfile:
@@ -46,7 +42,7 @@ class Trip:
 @dataclass
 class Event:
     """One transaction plus generator-only bookkeeping."""
-    txn: dict                        # the raw record: exactly RAW_FIELDS
+    txn: dict                        # the raw record: exactly streaming.schemas.RAW_FIELDS
     event_time: datetime             # same moment as txn["event_time"]
     kind: str                        # normal | splurge | spree | travel | travel_booking | travel_anchor | fraud
     send_time: datetime | None = None    # scheduled_send_time (#36)

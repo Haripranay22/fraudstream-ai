@@ -17,9 +17,6 @@ from generator.clock import to_iso
 from generator.entities import Card, Customer, Merchant, World, build_world, load_config
 from generator.traffic import Event, Traffic, haversine_km, new_id, randint, schedule_sends, uniform
 
-PATTERNS = ("velocity_burst", "impossible_travel", "amount_spike", "card_testing")
-LABEL_FIELDS = ("txn_id", "fraud_pattern", "attack_id", "attack_seq", "label_time")
-
 
 @dataclass(frozen=True)
 class Attack:

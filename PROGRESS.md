@@ -48,8 +48,14 @@ Stage 0 (setup) ✅
 | 40 | Checklist additions (1.09): legit rapid purchases (mall trips, app sprees) as velocity look-alikes; velocity may reuse a merchant; card-testing cash-out only 60% of the time; spikes sometimes at the customer's usual category/merchant; merchants differ in popularity and fraud targets categories by weight (generator-only); 3-day warm-up with no attacks; anti-shortcut tests | Every pattern gets realistic negatives and variation, so no single field (declined, amount, away, late, online) identifies fraud on its own |
 | 41 | Raw txn schema: txn_id, card_id, customer_id, merchant_id, mcc, amount, currency, channel, lat, lon (merchant location; null online), status, event_time. Labels: txn_id, fraud_pattern, attack_id, attack_seq, label_time (1.09) | Nothing in raw says fraud; generator internals (profiles, kind tags, send time, attack ids) never leave the generator |
 | 42 | Attack start time is blended: 75% follow the legit daily curve (victim's local time), 25% a flatter curve weighted to night. Result: 15% of attacks start 00–06 local vs 4% of legit txns (1.09) | Real fraud skews to odd hours, but fully uniform timing made hour-of-day a synthetic artifact the model could exploit. Blend keeps it a weak signal (night alone F1 0.08) |
-| 43 | Keep `RAW_FIELDS` / `LABEL_FIELDS` in the generator for 1.09; move the canonical schema to `streaming/schemas.py` in 1.11 (#3) | No dependency on a module that doesn't exist yet; the producer is the first consumer of the schema |
+| 43 | Keep `RAW_FIELDS` / `LABEL_FIELDS` in the generator for 1.09; move the canonical schema to `streaming/schemas.py` in 1.11 (#3). Done in #50 | No dependency on a module that doesn't exist yet; the producer is the first consumer of the schema |
 | 44 | Project review agents in `.claude/` (8 reviewers + `fraud-engineering-review` skill), committed. Pre-commit review at the end of each BUILD task; full review only at stage-end design reviews | Independent checks for leakage, realism, streaming semantics and tests catch what passing tests miss. Full review = 8 agents re-reading the repo, so keep it for milestones |
+| 45 | Producer replays on the simulated clock (`--speed 600` default, ≈30 TPS, 14 days in ~34 min); `--speed max` for fast loads (Claude-recommended, 1.11) | Keeps the event-time vs arrival-time gap real: Stage 2 watermarks and alert latency need it. Fixed TPS would make late events late only in order, not in time |
+| 46 | `acks=all` + `enable.idempotence=true` (Claude-recommended, 1.11) | A lost ack + retry would duplicate a txn = fake velocity burst. With RF=1 acks=all equals acks=1; set anyway so the config is right for a 3-broker cluster |
+| 47 | Restarts are at-least-once: resend everything with the same deterministic `txn_id`s; Stage 2 dedupes txns on `txn_id` within the watermark, and the label join/eval dedupes labels on `txn_id` too (Claude-recommended, 1.11) | Industry norm (card networks, webhooks, Kafka). A checkpoint file only shrinks duplicates, so Spark needs dedup anyway. Bounded by the watermark so state doesn't grow forever |
+| 48 | Labels sent at `max(label_time, own txn's send time)`; `fraud.labels` key = `txn_id` (Claude-recommended, 1.11) | Honors label delay when switched on. A bank can't know fraud before the txn arrives. Labels need no per-card order; txn_id spreads evenly and is the join key |
+| 49 | Producer failure handling: Kafka retries up to 5 min (default), then the callback logs + counts the failure and the run continues; exit 1 if any failed/undelivered, 130 on Ctrl+C (flush first); local queue full → wait + retry, never drop; fail fast if Kafka is down or topics are missing (Claude-recommended, 1.11) | One bad message shouldn't stop a 34-min run, but no failure is silent |
+| 50 | Topics + `RAW_FIELDS` / `LABEL_FIELDS` / `PATTERNS` moved to `streaming/schemas.py` (does #43, 1.11) | One schema for the producer and (Stage 2) Spark. The producer enforces it: only `RAW_FIELDS` / `LABEL_FIELDS` leave the generator. `streaming/` must never import from `generator/` |
 
 ## Setup gotchas
 - Docker Hub pulls failed with `EOF` when both images downloaded in parallel. Fix: `docker pull apache/kafka:4.0.0` on its own, then `make up`.
@@ -65,6 +71,12 @@ transactions.raw · fraud.labels · transactions.scored · alerts
 Shortcut F1 (each field alone as a fraud rule): declined 0.14 · online 0.05 · late 0.02 · away_from_home 0.12 · night 0.08 · amount>300 0.07 · amount>1000 0.11 · amount>2000 0.05
 Re-check after any generator change: a big jump means a look-alike broke (`tests/test_patterns.py` fails above 0.5).
 
+## Stage 2 cautions (from the 1.11 reviews)
+- A label can be *read* before its txn: separate topics/partitions have no ordering between them. The label join must handle a `txn_id` it hasn't seen yet.
+- Kafka record timestamp = arrival time (wall clock); `event_time` in the payload = swipe time. Per card, partition order is arrival order, not event-time order.
+- Train/eval only on labels with `label_time` ≤ the cutoff, and switch `labels.delay_enabled` on before training (label maturity). `fraud.labels` is for training/eval only, never read by the scoring stream.
+- Feature tables must never contain `fraud_pattern`, `attack_id`, `attack_seq`, `label_time` (add a test). Windows are trailing only, on event_time.
+
 ## Metrics to report
 Precision, recall, F1, dollar-weighted recall, FPR, p50/p95 alert latency — per fraud pattern, rules vs XGBoost
 
@@ -73,6 +85,10 @@ Precision, recall, F1, dollar-weighted recall, FPR, p50/p95 alert latency — pe
 
 ## Break log
 <!-- 1.15 etc.: what I broke, what happened, what I learned -->
+### 1.11 (unplanned): laptop slept mid-run
+- **What broke:** laptop went to sleep during a 34-min paced run. Result: `queued 61,499 | failed 15,256`, all `_MSG_TIMED_OUT` ("Local"), exit 1. Broker stayed healthy (no restart, no errors in logs).
+- **What happened:** sleep froze the producer and Docker's VM; on wake the host→container link (localhost:9092) was down for minutes. The producer kept queuing, librdkafka kept retrying, and everything not acked within `delivery.timeout.ms` (5 min) failed. ~8–9 min of traffic lost.
+- **What I learned:** "Local" errors = the client gave up, not the broker. A healthy broker can still be unreachable. Failures were loud and counted (#49), but lost messages are only recovered by re-running, which duplicates what already landed (#47): a later check showed 108k raw msgs for a 60.6k run until `make clean`. Same failure in prod = network partition / broker failover.
 
 ## Next
-See ROADMAP.md → 1.03b QUIZ, then 1.05 SPEC
+See ROADMAP.md → 1.06 QUIZ, then 1.14 SPEC (consume_check.py). 1.11 verified: clean run at `--speed 6000` gave exactly 60,589 raw (20,613 / 18,734 / 21,242 per partition) + 910 labels

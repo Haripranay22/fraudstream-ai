@@ -8,8 +8,9 @@ import pytest
 
 from generator.clock import parse_utc
 from generator.entities import load_config
-from generator.patterns import LABEL_FIELDS, PATTERNS, generate
-from generator.traffic import RAW_FIELDS, haversine_km
+from generator.patterns import generate
+from generator.traffic import haversine_km
+from streaming.schemas import LABEL_FIELDS, PATTERNS, RAW_FIELDS
 
 
 @pytest.fixture(scope="module")
